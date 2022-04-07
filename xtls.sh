@@ -19,7 +19,7 @@ read -rp "请输入你的Xray-ID(eg:$(uuidgen)):" uuid_init
 #系统更新安装包并升级
 apt update && apt upgrade -y
 # 安装所需要的软件
-apt install curl jq lsof cron
+apt install curl jq lsof cron -y
 apt purge nginx 
 #安装防火墙ufw
 apt install ufw
@@ -108,7 +108,7 @@ systemctl daemon-reload
 #安装TLS证书
 #1、安装Acme
 apt install socat -y
-apt install -y automake autoconf libtool
+apt install -y automake autoconf libtool -y
 curl https://get.acme.sh yes |sh
 alias acme.sh=/root/.acme.sh/acme.sh
 
