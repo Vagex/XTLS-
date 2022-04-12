@@ -1,0 +1,30 @@
+如何配置 Caddy
+配置文件最顶上加入:
+
+{
+  acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+以防止 Caddy 大量生成 Let’s Encrypt 证书导致 rate limit。
+
+主要的站点配置文件为
+
+example.com {
+  root * /var/www/html
+  file_server
+  tls {
+    protocols tls1.2 tls1.3
+    ciphers TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+    curves x25519
+  }
+}
+这在 example.com 域名的 :443 监听了一个简单文件服务器，并在 :80 端口监听了一个自动转发到 https 的服务器。
+
+www.example.com {
+  redir https://example.com{uri}
+}
+这将 www 域名自动转发到了主域名。
+
+在配置中加入如下一行
+
+php_fastcgi unix//run/php/php7.4-fpm.sock
+可以让 Caddy 自动调用 php。
