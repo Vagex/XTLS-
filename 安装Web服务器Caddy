@@ -1,0 +1,190 @@
+在Oracle Cloud免费VPS CentOS 7 系统上开启SELinux和防火墙（firewalld和iptables）情况下安装Web服务器Caddy
+参考：
+
+https://src.fedoraproject.org/rpms/caddy/blob/master/f/caddy.spec
+https://github.com/caddyserver/caddy/tree/master/dist/init/linux-systemd
+
+本文的亮点在于开启SELinux、防火墙（Firewalld和iptables）情况下，配置caddy。 本文不限于Oracle Cloud云服务，同样适用于其他类似的情况下。
+
+按照以上教程，默认路径为：
+
+/usr/local/bin/caddy #caddy程序所在目录
+/etc/caddy/Caddyfile #caddy配置文件所作目录
+/etc/ssl/caddy #ssl证书所在目录
+/var/www/ #网页所在目录
+建立www-data用户
+caddy服务默认使用www-data用户运行，因此需要建立该用户。教程中为建立用户组为33，但Oracle CentOS 7系统中GID 33被tape占用：
+
+grep '33' /etc/group
+使用GID 36建立www-data用户
+
+sudo groupadd -g 36 www-data
+sudo useradd \
+  -g www-data --no-user-group \
+  --home-dir /var/www --no-create-home \
+  --shell /usr/sbin/nologin \
+  --system --uid 36 www-data
+下载并安装caddy
+sudo mkdir ~/caddy && cd ~/caddy
+
+sudo wget https://github.com/caddyserver/caddy/releases/download/v1.0.3/caddy_v1.0.3_linux_amd64.tar.gz
+
+sudo tar xvf caddy_v1.0.3_linux_amd64.tar.gz
+sudo cp caddy /usr/local/bin
+
+sudo chown root:root /usr/local/bin/caddy
+
+sudo chmod 755 /usr/local/bin/caddy
+使caddy能监听443，80端口
+
+sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy
+安装systemd服务
+
+sudo cp init/linux-systemd/caddy.service /etc/systemd/system/
+
+sudo chown root:root /etc/systemd/system/caddy.service
+
+sudo chmod 644 /etc/systemd/system/caddy.service
+修改servicen内容
+
+sudo vi /etc/systemd/system/caddy.service
+需要修改为以下三行：
+
+ExecStart=/usr/local/bin/caddy -quic -log stdout -agree=true -conf=/etc/caddy/Caddyfile -root=/var/tmp
+ReadWriteDirectories=/etc/ssl/caddy
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+说明：
+
+第一行，加入-quic，使caddy开启QUIC协议；
+
+第二行，默认为ReadWritePaths=/etc/ssl/caddy，此时启动caddy服务，会出现如下错误：[ERROR] Making new certificate manager: could not save user: mkdir /etc/ssl/caddy/acme: read-only file system。
+
+第三行，注释掉AmbientCapabilities=CAP_NET_BIND_SERVICE前的#，不用注释应该页没问题。因前面已经setcap过了。
+
+建立caddy配置文件和ssl相关文件夹
+sudo mkdir /etc/caddy
+
+sudo touch /etc/caddy/Caddyfile
+
+sudo chown -R www-data:www-data /etc/caddy
+
+sudo chmod 644 /etc/caddy/Caddyfile
+sudo mkdir /etc/ssl/caddy
+
+sudo chown www-data:www-data /etc/ssl/caddy
+
+sudo chown -R root:www-data /etc/ssl/caddy
+
+sudo chmod 0770 /etc/ssl/caddy
+修改VPS系统内SELinux和防火墙相关设置
+将caddy定义为httpd服务
+
+sudo semanage fcontext -a -t httpd_exec_t /usr/local/bin/caddy
+
+sudo restorecon /usr/local/bin/caddy
+设置caddy配置文件和ssl相关文件夹SELinux权限
+
+sudo semanage fcontext -a -t httpd_config_t /etc/caddy
+
+sudo semanage fcontext -a -t httpd_config_t /etc/caddy/Caddyfile
+
+ 
+
+
+sudo semanage fcontext -a -t httpd_sys_rw_content_t /etc/ssl/caddy
+
+sudo restorecon -r /etc/caddy
+
+sudo restorecon -r /etc/ssl/caddy
+开启http和https服务，即开启80和443端口，默认为tcp
+
+sudo firewall-cmd --permanent --zone=public --add-service=http
+
+sudo firewall-cmd --permanent --zone=public --add-service=https
+允许ACME进行连接以获取证书
+
+sudo setsebool -P httpd_can_network_connect 1
+HTTP challenge 端口的SELinux权限
+
+sudo semanage port -a -t http_port_t -p tcp 5033
+开启QUIC，需开放udp端口
+
+sudo semanage port --add --type http_port_t --proto udp 80
+
+sudo semanage port --add --type http_port_t --proto udp 443
+QUIC-firewalld设置
+
+sudo firewall-cmd --zone=public --add-port=80/udp --permanent
+
+sudo firewall-cmd --zone=public --add-port=443/udp --permanent
+保存设置，重启防火墙，以使配置生效
+
+sudo firewall-cmd --reload
+在Oracle Cloud后台网页开放端口
+进入“实例”，点击“实例信息”下的“虚拟云网络”右侧类似“VirtualCloudNetwork-2019****-****”的按钮并进入；
+
+在“（根）区间中的子网”下，如果存在多个类似“公共子网 pbOp:***-**-1 ”的项目列表，就随便点进去一个；
+
+
+ 
+在“安全列表”下，点击并进入“Default Security List for VirtualCloudNetwork-2019****-****”。
+
+
+ 
+编辑“入站规则”下“目的地端口范围”为22那条规则，或者参照这条规则新建也可以。
+将“目的地端口范围”下的“22”改为“22,80,443,5033”，然后“保存更改”即可。 系统会自动根据添加的IP生成新的三条规则。
+
+注意：每个端口或范围间隔需要英文逗号。
+
+开启QUIC，需要开放80和443的UDP端口，参照刚才设置的80和433端口新建规则即可，注意在“IP 协议 ”下选择“UDP”。
+
+web站点文件相关设置
+建立web站点文件夹
+
+sudo mkdir /var/www
+
+sudo chown -R www-data:www-data /var/www
+
+sudo chmod 555 /var/www
+sudo mkdir -p /var/www/example.com
+
+sudo chown -R www-data:www-data /var/www/example.com
+
+sudo chmod -R 555 /var/www/example.com
+设置网站文件夹SELinux权限
+
+sudo restorecon -r /var/www
+建立web测试页
+
+sudo vi /var/www/example.com/index.html
+写入如下内容
+
+<h1>Hello world!</h1>
+测试web页
+修改Caddyfile，添加站点
+
+sudo vi /etc/caddy/Caddyfile
+添加如下内容：
+
+example.com {
+     root /var/www/example.com
+}
+启动caddy服务
+
+sudo systemctl daemon-reload
+
+sudo systemctl start caddy.service
+
+systemctl status caddy
+访问example.com，看是否能见到网站页面
+
+如能成功访问，设置开机启动
+
+sudo systemctl enable caddy.service
+完毕。
+
+本条目发布于2019年9月24日。属于Linux、Server分类，被贴了 [ERROR] Making new certificate manager: could not save user: mkdir /etc/ssl/caddy/acme: read-only file system、Caddy、CentOS 7、firewalld、iptables、Oracle Cloud、SELinux、vps、免费、甲骨文、防火墙 标签。
+
+如若转载，请注明作者和原文链接。
+© 2016-2021 Coldawn. Some Rights Reserved.
+Powered by WordPress. Header image by wild75.
