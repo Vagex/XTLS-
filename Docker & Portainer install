@@ -1,0 +1,18 @@
+ 1. #安装docker-io
+ curl -fsSL https://get.docker.com -o get-docker.sh
+ sudo sh get-docker.sh
+ 2. #安装portainer https://docs.portainer.io/v/ce-2.9/start/install/server/docker/linux
+ 
+ docker volume create portainer_data
+ 
+ docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
+    --restart=always \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v portainer_data:/data \
+    portainer/portainer-ce:2.11.1
+
+3. Calibre-web==Volume配置
+/usr/local/books --> /books
+/usr/local/config --> /config
+
+ 
