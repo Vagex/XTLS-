@@ -1,2 +1,18 @@
-#遍历aaa目录及子目录下所有某个后缀文件，并拷贝到bbb目录中
+#############遍历aaa目录及子目录下所有某个后缀文件，并拷贝到bbb目录中
 for /f "delims==" %a in ('dir /b /s "Calibre Library\*.epub"') do copy / -y "%a" bbb\	
+
+#############修改ubuntu20.04 网卡ip地址
+
+1. 修改/etc/netplan的配置文件
+network:
+	ethernets:
+		ens0：
+			addresses: [192.168.1.2/24]
+			gateway4: 192.168.1.1
+			nameservers:
+					addresses: [192.168.1.1]
+			dhcp4: no
+	version: 2
+2. 执行 netplan apply ，使修改生效
+
+#############
