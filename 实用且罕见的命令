@@ -1,0 +1,2 @@
+#遍历aaa目录及子目录下所有某个后缀文件，并拷贝到bbb目录中
+for /f "delims==" %a in ('dir /b /s "Calibre Library\*.epub"') do copy / -y "%a" bbb\	
