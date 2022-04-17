@@ -1,0 +1,200 @@
+################################################# CPU 网络 等等常用 #####################
+# 查看物理cpu个数
+grep 'physical id' /proc/cpuinfo | sort -u | wc -l
+
+# 查看核心数量 – CPU cores
+grep 'core id' /proc/cpuinfo | sort -u | wc -l
+
+# 查看线程总数 – 也就是逻辑CPU
+grep 'processor' /proc/cpuinfo | sort -u | wc -l
+
+# 限制某个进程的 CPU 使用
+cpulimit --pid 17918 --limit 80 --background
+
+# CPU占用最多的前10个进程
+ps auxw | head -1; ps auxw | sort -rn -k3 | head -10 
+
+# 查看网络端口的使用情况
+lsof -i:50001-50010
+# 当前iP
+curl ip.sb # 更快
+curl ip.3322.net # 要慢
+ip addr
+# 获取dns配置
+cat /etc/resolv.conf 
+
+##########################################   硬盘或文件 find/du/df  #########################
+find / -name caddy
+find / -name ".*jpg"
+
+# 当前目录下(包括子目录)寻找所有大于 200M 的文件
+find . -type f -size +200M
+# 对查找结果按照文件大小做一个排序
+find . -type f -size +200M  -print0 | xargs -0 du -h | sort -nr
+# 查看当前目录下某个类型的文件或数量
+find . -type f -print | grep php
+find . -type f -print | grep php | wc -l
+
+# 只找第二层子目录的文件
+find . -maxdepth 2 -mindepth 2 
+find . -name '*.gz' -exec tar -zxvf {} \;  
+
+# move all files >4G to the parent folder 
+find ./ -size +4G -exec mv {} ../ \;
+
+# 查找的时候忽略某些folder (./data, ./drive等）
+find . -path ./data -prune -false -o -size +500M -print0 | xargs -0 ls -l
+find . \( -path ./data -o -path ./drive \) -prune -false -o -size +500M -print0 | xargs -0 ll
+
+# 查找文件排序
+# -h human-readable
+# -S show hidden files
+# -d2 2 levels
+# -rh reverse sort & human-readable
+du -hS -d1 | sort -rh
+# 查找当前目录（往下走2层）下前20的大目录
+du -hm --max-depth=2 | sort -nr | head -20
+
+##################################################  Sed – Stream Editor 流编辑  ##########################
+sed flag 'range command' input.file
+
+# -n 默认会打印pattern space的每一行；-n to suppress; 通常和p也就是打印命令同时用；只打印相应的行
+sed -n '2,4p' input.file # 打印第2行到第4行，注意，共3行
+sed -n '2p' input.file
+sed -n '2,+3p' input.file # 打印第二行，和之后的3行（所以到第5行）
+
+sed '2d' input.file # 删除第二行
+
+# s是替换，g是s命令的全局标示，把改行当中所有匹配的都替换掉
+# 注意，这个不直接修改文件，而是到stdout
+sed 's/abc/123/g' input.file 
+
+# -i: in place
+# 直接把第47行删除，适合目标机重装系统的情况
+sed -ig '47d' /Users/hwang/.ssh/known_hosts
+
+# 将文件当中的所有出现的字符串全部替换掉；并同时生成备份文件 /etc/shadowsocks.json.bak
+sed -i.bak 's/aes-256-cfb/aes-256-gcm/g' /etc/shadowsocks.json
+
+# [[:space:]] 可用于linux/mac当中，作为空格，tab键的对应
+# -r 用extended regular expression - 这样+就不用写成 \+ 
+# + 标示1或多个，也可以写成 {1,}
+sed -nr '/^a[[:space:]]+bcd/p' test 
+# 等同于 (仅在linux下，mac不work，不知道为什么)
+sed -n '/^a[[:space:]]\+bcd/p' test
+
+# 以下等同
+# \1 代表第一个()当中捕获的匹配
+sed    's/^a[[:space:]]\+\(.*\)/a_and_multiple_space\1/g' test
+sed -r 's/^a[[:space:]]+(.*)/a_and_multiple_space_\1/g' test 
+
+# -e可以接多个命令
+sed -n -e '2d' -e '3 s/123/abc/g' input.file 
+
+
+me@banshee:~$ sudo netstat -anp | grep ::80
+tcp6       0      0 :::80                   :::*                    LISTEN      4011/apache2  
+
+me@banshee:~$ sudo netstat -anp | grep ::80 | sed 's/.*LISTEN *//'
+4011/apache2  
+
+#################################################################awk – 对行进行分割处理  ################################
+# think of awk as a column extractor
+me@banshee:~$ sudo netstat -anp | grep apache
+tcp6       0      0     :::80                   :::*                    LISTEN      4011/apache2    
+
+# output to the 4th tabular column only
+me@banshee:~$ sudo netstat -anp | grep apache | awk '{print $4}'
+:::80
+
+# 4th & 7th
+me@banshee:~$ sudo netstat -anp | grep apache | awk '{print $4, $7}'    
+:::80 4011/apache2
+
+# 可以做计算
+me@banshee:~$ cat awktext.txt
+1 2 3
+4 5 6
+7 8 9
+
+me@banshee:~$ cat awktext.txt | awk '{SUM+=$2}END{print SUM}'
+15
+
+# predefined special variable NR 是默认行数
+me@banshee:~$ cat awktext.txt | awk '{SUM+=$2}END{print SUM/NR}'
+5
+
+###########################################################  清理日志文件  ################
+# 控制systemctl服务产生的日志大小和保留ui'jm
+journalctl --vacuum-time=8w --vacuum-size=200M
+
+# 使用 ”&gt; 文件名“ 清理日志文件；
+root@localhost:/home/wwwlogs# &gt; limbopro.xyz.log
+root@localhost:/home/wwwlogs# &gt; access.log 
+
+# 可以在crontab -e 当中添加日志清理
+0 0 1,15 * * echo '' &gt; /home/wwwlogs/limbopro.xyz.log; #每月1和15号自动清理日志
+0 0 1,15 * * echo '' &gt; /home/wwwlogs/access.log; #每月1和15号自动清理日志
+
+# 用ncdu工具来查看大日志文件
+apt install -y ncdu
+ncdu /var/log #然后按i键
+
+#####################################################  Bash Shell脚本编程 ################
+# 变量
+$? 返回值，0是没问题，其他都有
+$0 函数名
+$1 第一个参数
+$@ 所有变量放在一起
+Mac-mini at ~ ❯ function tmpfunc() { echo $0; echo $1; echo $@;}
+Mac-mini at ~ ❯ tmpfunc 1 2 3
+tmpfunc
+1
+1 2 3
+
+# 用 [[ ]] 做test比较安全
+# 字符串包含
+if [[ "$STR" == *"$SUB"* ]]; then
+  echo "It's there."
+fi
+
+# 赋值
+var_name='7'
+echo $var_name # === echo ${var_name}
+
+# 列表
+name=(A B C) # 对应的index是从1开始
+echo ${name[0]} # 空
+echo ${name[1]} # A
+
+# while
+index=0
+while [[ $index -lt ${#id[@]} && -z "$record_id_found" ]]
+  if [[ "${name[index]}" == *"$HOSTNAME_TO_FIND"* ]]; then
+      record_id_found=${id[index]}
+  fi
+  index=$[$index+1]
+  if 
+done
+unset index # 取消全局变量
+
+# 直接从程序当中退出
+if [ ${#name[@]} != ${#id[@]} ]; then
+  echo "Config file Disrupted!!"
+  echo "Please re-generate config.json file (run configure.bash)"
+  exit
+fi
+
+# 取值
+${var_name}
+# 执行命令，然后将结果输出
+echo $(date)
+# 计算
+echo $[7+1]
+
+# 管道
+BESTIP=$(sed -n "2,1p" result.csv | awk -F, '{print $1}')
+
+# 默认所有变量都是全局，需要unset
+# 或者用local
+local name=($(echo $CF_00IDEA_DOMAINS | jq -r '.result[].name'))
