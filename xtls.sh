@@ -51,14 +51,19 @@ rm -rf /etc/caddy
 rm -rf /usr/share/caddy
 cd /tmp/
 
-wget -O caddy.tar.gz https://github.com/caddyserver/caddy/releases/download/${CaddyVersion}/caddy_${CaddyVersion:1}_linux_amd64.tar.gz
+#wget -O caddy.tar.gz https://github.com/caddyserver/caddy/releases/download/${CaddyVersion}/caddy_${CaddyVersion:1}_linux_amd64.tar.gz
 
-mkdir /etc/caddy
-tar -zxvf caddy.tar.gz -C  /etc/caddy
-cp -rf /etc/caddy/caddy /usr/bin
+#mkdir /etc/caddy
+#tar -zxvf caddy.tar.gz -C  /etc/caddy
+#cp -rf /etc/caddy/caddy /usr/bin
+
+# wget https://caddyserver.com/api/download?os=linux&arch=amd64&p=github.com%2Fcaddy-dns%2Fcloudflare&idempotency=12340935284299
 
 # Caddy服务器配置
 cat <<EOF >/etc/caddy/Caddyfile
+www.${domain} {
+  redir https://${domain}{uri}
+}
 ${domain}:80 {
     root * /usr/share/caddy
     file_server
@@ -117,12 +122,12 @@ alias acme.sh=/root/.acme.sh/acme.sh
 ~/.acme.sh/acme.sh --force --debug --issue  --standalone -d ${domain} --pre-hook "systemctl stop caddy" --post-hook "systemctl restart caddy" --server letsencrypt
 
 #3、安装TLS证书
-mkdir  -p /usr/local/etc/xray/ssl
-~/.acme.sh/acme.sh --installcert -d ${domain} --certpath /usr/local/etc/xray/ssl/xray_ssl.crt --keypath /usr/local/etc/xray/ssl/xray_ssl.key --capath /usr/local/etc/xray/ssl/xray_ssl.crt
-chmod 755 /usr/local/etc/xray/ssl
+mkdir  -p /usr/local/etc/ssl
+~/.acme.sh/acme.sh --installcert -d ${domain} --certpath /usr/local/etc/ssl/${domain}.crt --keypath /usr/local/etc/ssl/${domain}.key --capath /usr/local/etc/ssl/${domain}.crt
+chmod 755 /usr/local/etc/ssl
 
 #配置Xray-Core
-cat <<EOF >/usr/local/etc/xray/config.json
+cat <<EOF >/etc/xray/config.json
 {
   "log": {
     "access": "none",
@@ -172,8 +177,8 @@ cat <<EOF >/usr/local/etc/xray/config.json
           ],
           "certificates": [
             {
-              "certificateFile": "/usr/local/etc/xray/ssl/xray_ssl.crt",
-              "keyFile": "/usr/local/etc/xray/ssl/xray_ssl.key"
+              "certificateFile": "/usr/local/etc/ssl/${domain}.crt",
+              "keyFile": "/usr/local/etc/ssl/${domain}.key"
             }
           ]
         }
@@ -225,8 +230,8 @@ cat <<EOF >/usr/local/etc/xray/config.json
           ],
           "certificates": [
             {
-              "certificateFile": "/usr/local/etc/xray/ssl/xray_ssl.crt",
-              "keyFile": "/usr/local/etc/xray/ssl/xray_ssl.key"
+              "certificateFile": "/usr/local/etc/ssl/${domain}.crt",
+              "keyFile": "/usr/local/etc/ssl/${domain}.key"
             }
           ]
         },
