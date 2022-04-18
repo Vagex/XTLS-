@@ -28,3 +28,22 @@ www.example.com {
 
 php_fastcgi unix//run/php/php7.4-fpm.sock
 可以让 Caddy 自动调用 php。
+
+
+################################ DNS cloudflare #############
+ /usr/bin/caddy list-modules |grep dns            ==》显示显示出dns.providers.cloudflare模块
+ 
+要修改 Caddy 配置，下面两种方法选择一种，建议每个网站独自设置，更灵活，获取 Token 的方法下面介绍。
+
+全局选项（对所有网站使用 DNS challenge）
+在 Caddyfile 最上边加入
+
+{
+    acme_dns cloudflare 3jd7w_Awe5ybpqG6zxXr6nRT&ywQyR_EfQtKoRe(你的API token)
+}
+每个网站独自设置
+在每个网站的配置里，加入
+
+tls {
+    dns cloudflare 3jd7w_Awe5ybpqG6zxXr6nRT&ywQyR_EfQtKoRe(你的API token)
+}
