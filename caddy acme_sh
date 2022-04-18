@@ -1,6 +1,5 @@
 如何配置 Caddy
 配置文件最顶上加入:
-
 {
   acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 }
@@ -22,6 +21,15 @@ example.com {
 www.example.com {
   redir https://example.com{uri}
 }
+
+根据协议跳转：
+所有http 请求跳转到一个域名
+redir 301 {
+   if {>X-Forwarded-Proto} is http
+   / https://{host}{uri}
+}
+
+
 这将 www 域名自动转发到了主域名。
 
 在配置中加入如下一行
