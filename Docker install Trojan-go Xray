@@ -1,0 +1,88 @@
+================== Trojan-go SETUP ======================
+docker run \
+    --name trojan-go \
+    -d \
+    -v /etc/trojan-go/:/etc/trojan-go \
+    --network host \
+    p4gefau1t/trojan-go
+   
+tls 证书 同样copy into /etc/trojan-go
+geoip 等路径 默认为docker image 内置的路径，不需要修改：  /usr/bin
+
+config.json:
+
+{
+    "run_type": "server",
+    "local_addr": "0.0.0.0",
+    "local_port": 12345,
+    "remote_addr": "127.0.0.1",
+    "remote_port": 80,
+    "password": [
+        "Password1"
+    ],
+    "ssl": {
+        "cert": "/etc/trojan-go/**.crt",
+        "key": "/etc/trojan-go/**.key",
+        "sni": "  youdomain.com  ",
+        "alpn": [
+             "http/1.1"
+        ],
+        "fallback_port": 80
+    }
+}
+
+================== Xray SETUP ======================
+
+docker run -d -p 12345:12345 --name xray --restart=always -v /etc/xray:/etc/xray teddysun/xray
+
+config.json:
+{
+  "log": {
+    "loglevel": "error"
+  },
+  "inbounds": [
+    {
+      "port": 12345,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "  UUID  ",
+            "flow": "xtls-rprx-direct",
+            "level": 0,
+            "email": "asafss@exadeeefdmple.com"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "dest": 80,
+            "xver": 1
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "xtls",
+        "xtlsSettings": {
+          "alpn": [
+            "http/1.1",
+            "h2"
+          ],
+          "certificates": [
+            {
+              "certificateFile": "youdomain.crt",
+              "keyFile": "youdomain..key"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom"
+    }
+  ]
+}
+			
