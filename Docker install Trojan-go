@@ -1,0 +1,10 @@
+docker run \
+    --name trojan-go \
+    -d \
+    -v /etc/trojan-go/:/etc/trojan-go \
+    --network host \
+    p4gefau1t/trojan-go
+    
+    
+tls 证书 同样copy into /etc/trojan-go
+geoip 等路径 默认为docker image 内置的路径，不需要修改：  /usr/bin
