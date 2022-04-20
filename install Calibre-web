@@ -1,0 +1,19 @@
+1. Calibre-web==Volume配置
+/usr/local/calibre/books --> /books
+/usr/local/calibre/config --> /config
+
+2. Calibre-web docker image sources：
+lscr.io/linuxserver/calibre-web
+
+3. #You are now logged in as: 'admin' 但是没法正常进入首页面    ***calibre-web
+还有一种情况也是  能进入首页面设置books，但是显示 DB location is not valid, please enter correct path  //client_secrets.json is not configured for web application 【google drive】
+解决方法：
+chmod  /config   to  911:911
+       /books    to  root
+	   metada.db  chmod 777 【必须】
+主要是以上两个目录的权限，尤其config 应该为 docker portainer的预设的用户组911，另外就是目录属性都改为750	   
+	
+数据库错误：attempt to write a readonly database。
+解决办法：
+chmod 666 /books 
+以上所有operation 都需要重启	
