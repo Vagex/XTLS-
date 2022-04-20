@@ -1,6 +1,12 @@
-1. Calibre-web==Volume配置
+1. Docker 配置
+* Calibre-web==Volume
 /usr/local/calibre/books --> /books
 /usr/local/calibre/config --> /config
+** Calibre 电子书转换器路径：/usr/bin/ebook-convert
+   KEpubify 电子书转换器路径：/usr/bin/kepubify
+   Unrar程序路径：/usr/bin/unrar
+*** 扩展程序
+environment ENV： DOCKER_MODS  --> linuxserver/calibre-web:calibre
 
 2. Calibre-web docker image sources：
 lscr.io/linuxserver/calibre-web
