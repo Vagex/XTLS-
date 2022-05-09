@@ -20,7 +20,7 @@
  
  docker volume create portainer_data
  
- docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
+ docker run -d -p 8000:8000 -p 8443:8443 --name portainer \
     --restart=always \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v portainer_data:/data \
@@ -29,3 +29,9 @@
 3. # 知晓Portainer latest版本
  https://github.com/portainer/portainer/
  
+4、Upgrading on Docker Standalone 升级Portainer latest版本
+docker stop portainer
+docker rm portainer
+
+docker pull portainer/portainer-ce:latest
+docker run -d -p 8000:8000 -p 8443:8443 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest
