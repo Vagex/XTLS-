@@ -1,0 +1,29 @@
+
+docker run -m <最大内存> --cpu-period=<CPU计算周期> --cpu-quota=<每周期可用CPU时间> -d -p 8888:8888 -e GRANT_SUDO=yes -e JUPYTER_ENABLE_LAB=yes -e RESTARTABLE=yes --user root --mount source=jupyter-workspace,destination=/home/jovyan/ -mount source=<SSL证书存放地址>,destination=/etc/ssl/notebook jupyter/scipy-notebook start-notebook.sh --NotebookApp.keyfile=/etc/ssl/notebook/<证书KEY文件名> --NotebookApp.certfile=/etc/ssl/notebook/<证书CRT文件名>
+
+
+EXAMPLE：
+docker run -m 500M --cpu-period=1000 --cpu-quota=500 -d -p 8888:8888 -e GRANT_SUDO=yes -e JUPYTER_ENABLE_LAB=yes -e CHOWN_HOME=yes -e RESTARTABLE=yes --user root --mount source=jupyter-workspace,destination=/home/jovyan/  jupyter/scipy-notebook
+
+
+====================================================================================================================
+不建议加上-it选项来进行交互，因为Jupyter可以使用Web终端进行相应配置。
+-e GRANT_SUDO=yes和--user root说明允许Jupyter的Web终端使用sudo权限，在需要另外安装插件或者软件的时候必须使用，但是如果你的Jupyter是开放给公共使用的，那么建议删除以增加安全性。
+-e JUPYTER_ENABLE_LAB=yes说明开启Jupyter Lab（在这里你就知道为什么我总是说Jupyter而不说后面的Notebook/Lab了），如果你需要体验Jupyter Lab的强大功能请打开，但是Jupyter Lab现阶段存在带宽占用很大（1M带宽要打开Jupyter Lab需要等待将近3分钟才能加载完）以及插件不完善的问题，如果不想使用可以关掉以节省资源。值得一提的是，无论是否启用Jupyter Lab，Jupyter Notebook都可以通过<目的地址>/tree来访问。
+--mount source=jupyter-workspace,destination=/home/jovyan/的目的是让在Jupyter中创建的Notebook可以保留在数据卷中，未来可以通过/var/lib/docker/volumes/jupyter-workspace/_data访问，当然，“jupyter-workspace”可以改为任何你喜欢的名字。
+Jupyter是用来跑程序的，不可避免会遇到程序Bug导致无限占用，此时如果没有相应的限制，那么很容易导致宿主机崩溃
+
+最大内存可以写500M, 1G, 500000K之类的，建议最小不小于128M。
+CPU占用率 = 每周期可用CPU时间 ÷ CPU计算周期， 大于100%则意味着使用多个vCPU，例如如果我分配8个vCPU那么可以设置为--cpu-period=1000 --cpu-quota=8000，这两项取值范围都是1000, 1000000。
+如果需要使用HTTPS需要在宿主机找个地方先放着KEY和CRT证书。
+
+Selecting an Image：
+
+jupyter/base-notebook ==》 jupyter/minimal-notebook ==》 jupyter/scipy-notebook  ==》 jupyter/datascience-notebook  ==》 jupyter/pyspark-notebook  ==》 jupyter/all-spark-notebook
+
+QAQ:
+WARNING: container must be started as root to grant sudo permissions!
+WARNING: no write access to /home/jovyan. Try starting the container with group 'users' (100), e.g. using "--group-add=users".
+
+issue:So in order to make it work we need to use the option -e CHOWN_HOME=yes, full command is below.
+docker run --rm -p 8888:8888 --user root -e NB_USER=jovyan -e CHOWN_HOME=yes --workdir /home/jovyan jupyter/base-notebook
