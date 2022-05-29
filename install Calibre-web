@@ -23,3 +23,16 @@ chmod  /config   to  911:911
 解决办法：
 chmod 666 /books 
 以上所有operation 都需要重启	
+============== 官方docker run ====================
+docker run -d \
+  --name=calibre-web \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e TZ=Europe/London \
+  -e DOCKER_MODS=linuxserver/calibre-web:calibre `#optional` \
+  -e OAUTHLIB_RELAX_TOKEN_SCOPE=1 `#optional` \
+  -p 8083:8083 \
+  -v /path/to/data:/config \
+  -v /path/to/calibre/library:/books \
+  --restart unless-stopped \
+  lscr.io/linuxserver/calibre-web:latest
