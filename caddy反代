@@ -1,0 +1,12 @@
+{
+  debug
+}
+
+gh.proxy {
+  reverse_proxy https://github.com {
+    header_up Host {upstream_hostport}
+    header_up X-Forwarded-Host {host}
+    header_up origin https://github.com
+    header_down location (https://github.com/)(.*) https://gh.proxy/$2
+  }
+}
