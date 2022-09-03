@@ -1,0 +1,32 @@
+https://p3terx.com/archives/linux-vps-uses-rclone-to-mount-network-drives-such-as-onedrive-and-google-drive.html
+
+开机自动挂载
+下载并编辑自启脚本
+wget -N git.io/rcloned && nano rcloned
+修改内容：
+NAME="Onedrive" #Rclone配置时填写的name
+REMOTE=''  #远程文件夹，网盘里的挂载的一个文件夹，留空为整个网盘
+LOCAL='/Onedrive'  #挂载地址，VPS本地挂载目录
+设置开机自启
+mv rcloned /etc/init.d/rcloned
+chmod +x /etc/init.d/rcloned
+update-rc.d -f rcloned defaults # Debian/Ubuntu
+chkconfig rcloned on # CentOS
+bash /etc/init.d/rcloned start
+看到 [信息] rclone 启动成功 ! 即可。
+
+管理
+开始挂载 bash /etc/init.d/rcloned start
+
+停止挂载 bash /etc/init.d/rcloned stop
+
+重新挂载 bash /etc/init.d/rcloned restart
+
+查看日志 tail -f /$HOME/.rclone/rcloned.log
+
+卸载自启挂载
+bash /etc/init.d/rcloned stop
+update-rc.d -f rcloned remove # Debian/Ubuntu
+chkconfig rcloned off # CentOS
+rm -f /etc/init.d/rcloned
+参考资料
