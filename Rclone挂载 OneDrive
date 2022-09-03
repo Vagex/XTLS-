@@ -30,3 +30,31 @@ update-rc.d -f rcloned remove # Debian/Ubuntu
 chkconfig rcloned off # CentOS
 rm -f /etc/init.d/rcloned
 参考资料
+++++++++++++++++++++++++=====================================
+一、编辑系统服务文件
+一整条命令一把梭哈。
+
+cat > /etc/systemd/system/rclone.service <<EOF
+[Unit]
+Description=Rclone
+AssertPathIsDirectory=LocalFolder
+After=network-online.target
+[Service]
+Type=simple
+ExecStart=rclone mount GDrive:/ /www/wwwroot/kejiwanjia/GDrive --allow-other --allow-non-empty --vfs-cache-mode full --vfs-cache-max-age 48h --vfs-cache-max-size 5G --vfs-read-chunk-size 128M --vfs-read-chunk-size-limit 1G --buffer-size 128M
+ExecStop=fusermount -u LocalFolder
+Restart=on-abort
+User=root
+[Install]
+WantedBy=default.target
+EOF
+二、启用
+#开始启动
+systemctl start rclone
+#设置开机自启
+systemctl enable rclone
+#其他使用
+systemctl restart rclone #重启
+systemctl stop rclone #停止
+systemctl status rclone #状态
+好了，Rclone的基础搭建已经学完了。下一节，我会带来更多高级的玩法哦！
