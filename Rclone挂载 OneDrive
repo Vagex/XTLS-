@@ -1,0 +1,60 @@
+https://p3terx.com/archives/linux-vps-uses-rclone-to-mount-network-drives-such-as-onedrive-and-google-drive.html
+
+开机自动挂载
+下载并编辑自启脚本
+wget -N git.io/rcloned && nano rcloned
+修改内容：
+NAME="Onedrive" #Rclone配置时填写的name
+REMOTE=''  #远程文件夹，网盘里的挂载的一个文件夹，留空为整个网盘
+LOCAL='/Onedrive'  #挂载地址，VPS本地挂载目录
+设置开机自启
+mv rcloned /etc/init.d/rcloned
+chmod +x /etc/init.d/rcloned
+update-rc.d -f rcloned defaults # Debian/Ubuntu
+chkconfig rcloned on # CentOS
+bash /etc/init.d/rcloned start
+看到 [信息] rclone 启动成功 ! 即可。
+
+管理
+开始挂载 bash /etc/init.d/rcloned start
+
+停止挂载 bash /etc/init.d/rcloned stop
+
+重新挂载 bash /etc/init.d/rcloned restart
+
+查看日志 tail -f /$HOME/.rclone/rcloned.log
+
+卸载自启挂载
+bash /etc/init.d/rcloned stop
+update-rc.d -f rcloned remove # Debian/Ubuntu
+chkconfig rcloned off # CentOS
+rm -f /etc/init.d/rcloned
+参考资料
+++++++++++++++++++++++++=====================================
+一、编辑系统服务文件
+一整条命令一把梭哈。
+
+cat > /etc/systemd/system/rclone.service <<EOF
+[Unit]
+Description=Rclone
+AssertPathIsDirectory=LocalFolder
+After=network-online.target
+[Service]
+Type=simple
+ExecStart=rclone mount GDrive:/ /www/wwwroot/kejiwanjia/GDrive --allow-other --allow-non-empty --vfs-cache-mode full --vfs-cache-max-age 48h --vfs-cache-max-size 5G --vfs-read-chunk-size 128M --vfs-read-chunk-size-limit 1G --buffer-size 128M
+ExecStop=fusermount -u LocalFolder
+Restart=on-abort
+User=root
+[Install]
+WantedBy=default.target
+EOF
+二、启用
+#开始启动
+systemctl start rclone
+#设置开机自启
+systemctl enable rclone
+#其他使用
+systemctl restart rclone #重启
+systemctl stop rclone #停止
+systemctl status rclone #状态
+好了，Rclone的基础搭建已经学完了。下一节，我会带来更多高级的玩法哦！
