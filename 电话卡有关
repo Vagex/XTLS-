@@ -1,0 +1,8 @@
+有热心网友回复在 Android Q 上若无法激活 Google Fi，可尝试 Reddit 帖中提供的方法：
+在拨号界面输入 *#*#SWITCHSIM#*#*（也就是 *#*#794824746#*#*），清除 Fi app 的数据和缓存并重启手机，然后再打开 Fi app 进行激活。
+
+此前有网友发现升级到 Android Q 后，Pixel 3 似乎可以实现双卡双待（eSIM+实体 SIM 卡实现 Dual SIM Dual Standby，
+与目前大部分双卡机器支持的 Dual SIM Dual Active 存在差距），开启方式是进入开发者选项，选择 Feature flags 并打开 setting_network_and_internet_v2 即可
+
+先进入开发者选项，选择 Feature flags 并打开 setting_network_and_internet_v2 ，然后回到 SIM 卡管理中，点击 Add more 后系统会提示是否启用 DSDS，确认并重启。
+
