@@ -1,0 +1,28 @@
+申请或删除Let's Encrypt证书方法：
+
+1、安装certbot
+
+apt install certbot
+
+2、certbot申请证书，申请前先关掉nginx等web服务
+
+certbot certonly --standalone --email youmail@mail -d abc.com -d www.abc.com
+
+3、下面是cron每月1号凌晨2点自动检查更新ssl证书配置
+
+crontab -e
+
+0 2 1 * * /usr/bin/certbot renew --pre-hook "service nginx stop" --post-hook "service nginx start"
+
+service cron restart
+
+4、如果要更换域名则可以删除证书，重新申请
+
+
+rm -rf /etc/letsencrypt/live/*
+rm -rf /etc/letsencrypt/archive/*
+rm /etc/letsencrypt/renewal/*
+停止nginx后，重复上面第2步就可以了。
+
+5、查看证书剩余日期等详细信息
+certbot certificates
