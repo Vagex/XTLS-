@@ -1,0 +1,7 @@
+sudo modprobe binder_linux devices=binder,hwbinder,vndbinder
+sudo modprobe ashmem_linux
+
+ to add ashmem kernel module
+
+cat /sys/module/binder_linux/parameters/devices
+binder,hwbinder,vndbinder
