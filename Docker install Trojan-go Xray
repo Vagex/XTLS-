@@ -1,3 +1,17 @@
+方法一：选择时区
+1.执行命令：
+dpkg-reconfigure tzdata
+2.选择Asia->Shanghai
+
+防止系统重启后时区改变，执行下面一行命令
+cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+作者：Leon_Geo
+链接：https://www.jianshu.com/p/ef851a01d9de
+来源：简书
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+
 ================== Trojan-go SETUP ======================
 docker run \
     --name trojan-go \
