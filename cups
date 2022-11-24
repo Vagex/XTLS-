@@ -1,0 +1,24 @@
+
+https://stackoverflow.com/questions/71276329/cups-usb-printer-wont-print-after-restarting-the-printer
+
+Set standard options in Portainer for olbat/cupsd: docker run -d -p 631:631 -v /var/run/dbus:/var/run/dbus --name cupsd olbat/cupsd
+Add only one another volume: /dev/bus/usb:/dev/bus/usb
+Enable privileged mode.
+
+
+***********************************************************************
+
+Brother DCP-T310 没有64bit 驱动程序，可以使用以下办法安装
+
+wget https://download.brother.com/welcome/dlf006893/linux-brprinter-installer-2.2.3-1.gz
+
+gzip -d linux-brprinter-installer-2.2.3-1.gz
+
+sudo bash linux-brprinter-installer-2.2.3-1 DCP-T310
+
+***********************************************************************
+
+Add printers to the Cups server
+Connect to the Cups server at http://127.0.0.1:631
+Add printers: Administration > Printers > Add Printer
+Note: The admin user/password for the Cups server is print/print
