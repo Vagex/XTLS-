@@ -1,0 +1,19 @@
+一、运行以下命令将 Google Chrome 存储库添加到您的 Ubuntu 系统：
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrom-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+
+接下来，导入 GPG 密钥：
+
+curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/googlechrom-keyring.gpg
+
+接下来，使用以下命令更新 Ubuntu 存储库并安装稳定版本的 Google Chrome：
+
+sudo apt update
+sudo apt install google-chrome-stable
+
+二、安装google 拼音
+apt install fcitx* fcitx-googlepinyin
+
+im-config
+fcitx-configtool
+
