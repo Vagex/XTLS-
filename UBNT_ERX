@@ -1,0 +1,21 @@
+Config Tree -> firewall / options / mss-clamp6
+
+一般标准的 PPPoE 环境 IPv6 MSS 值应该是 1432  (1500-8-40-20)，
+但是也有运营商不知道用了什么奇怪的东西导致更小的情况，如果设成1432还是有问题可以再改小试试，我见过要要改到 1382 才可以的网络。
+
+跟着视频操作1次，只能拿到公网ipv6，但是本地的内网还是没有打开。
+
+慢放视频发现interfaces/ethernet/eth0/pppo/0/dhcpv6-pd/pd/0/interface有做设置，跟着学习输入+搜索其他ERX用户这个地方的设置，如果只用1个ip段的内网，就设定
+host-address为::1
+prefix-id为:1（视频为:2，猜测是因为有2个内网段192.168.1.x和192.168.2.x)
+service为slaac。
+终于成功.
+不知道原因，基本东猜西猜，不一定对，反正成功开启了内网的ipv6
+
+上面的步骤到点开pd/0后显示/64，把/64改成/60就可以了，不会报错了
+
+interfaces / ethernet / eth0 / pppoe / 0 / ipv6 / address，点+
+interfaces / ethernet / eth0 / pppoe / 0 / ipv6 / enable，点+
+以上设置完成后Preview即可生效，另外根据实际使用中，发现我这里移动商分发的IPv6 DNS服务器经常抽风，导致打开网页最开始会很卡。可以在IPv6里面启用no-dns选项即可。
+
+如果你的运营商给你的地址已经是/64，没有DHCPv6-PD，那么可以通过IPv6 NDP解决，我之前在OpenWRT实现过，我这里外网网卡是eth0，内网是br-lan，先安装ndppd
