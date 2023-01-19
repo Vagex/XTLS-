@@ -1,0 +1,13 @@
+去除wifi上感叹号
+
+如果没有标题所述情况可忽略该教程，我安装安卓12后未发现有感叹号情况，只是移动网络在关闭时出现移动网络感叹号，这个感叹号是正常的，与这教程所述问题无关。标题情况是你在有网络（WiFi或数据流量）下显示感叹号并提示网络无法连接，这时可以参考该教程。
+
+执行命令
+
+adb shell settings put global captive_portal_https_url https://www.google.cn/generate_204
+
+或者用v2ex的
+
+adb shell "settings put global captive_portal_https_url https://captive.v2ex.co/generate_204"
+
+稍等会，或者开启飞航再关闭就会消失。
